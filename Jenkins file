@@ -1,0 +1,48 @@
+# CI pipeline
+pipeline{
+    agent any
+    
+    tools{
+        maven "Maven"
+    }
+    
+    stages{
+        stage('clone'){
+         steps {
+            git 'https://github.com/ashokitschool/maven-web-app.git'
+        }
+      }
+    
+         stage('package'){
+             steps{
+                 sh 'mvn clean package' 
+             }
+         }
+        stage('build docker image'){
+            steps{
+                sh 'docker build -t ashokit/mavenwebapp .'
+            }
+        }
+        stage('trigger'){
+            steps{
+                build 'CD deploy'
+            }
+        }
+    }
+}
+#CD pipeline
+pipeline{
+    agent any
+    stages{
+        stage('gitclone'){
+            steps{
+                git 'https://github.com/ashokitschool/maven-web-app.git'
+            }
+        }
+        stage('deploy'){
+            steps{
+                sh 'kubectl apply -f k8s-deploy.yml'
+            }
+        }
+    }
+}
