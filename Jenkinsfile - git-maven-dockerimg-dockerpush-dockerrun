@@ -1,0 +1,39 @@
+pipeline {
+    agent any
+    
+    tools{
+        maven 'Maven-1'
+    }
+    
+    stages{
+        stage('git clone'){
+            steps{
+            git branch: 'main', url: 'https://github.com/ashokitschool/contact_backend_app.git'
+            }
+        }
+         stage('clean package'){
+            steps{
+            sh 'mvn clean package'
+            }
+        }
+         stage('docker image'){
+            steps{
+            sh 'docker build -t backapp1 .'
+            }
+        }
+        stage('docker image push'){
+            steps{
+                withCredentials([string(credentialsId: 'Dockerhub', variable: 'dockerhubpass')]) {
+                sh 'docker tag backapp1 siddheshshah/backapp1'
+                sh 'docker login -u siddheshshah -p ${dockerhubpass}'
+                sh 'docker push siddheshshah/backapp1'
+                }
+            }
+        }
+         stage('docker run'){
+            steps{
+            sh 'docker run -d -p 8081:8080 backapp1'
+            }
+        }
+    }
+}
